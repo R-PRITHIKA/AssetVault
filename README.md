@@ -20,7 +20,12 @@ For local development with automatic restart use `npm run dev`. Uploaded files a
 
 ## Account access
 
-People can register an account from the sign-in page and sign in again later with that email and password. Public registration allows Viewer or Editor roles; only an existing Administrator can grant Workspace Owner (Administrator) access. Administrators can also create or change accounts from User management. New passwords must be at least 12 characters.
+The default Workspace Owner account is provisioned automatically when the server starts:
+
+- Email: `owner@assetvault.local`
+- Password: `Owner@asset123`
+
+The Owner can sign in only with these credentials. Existing Administrator accounts are converted to Editors during provisioning, and only the default Owner account has Owner access. Other people can sign in with their account or register as Viewer or Editor. The Owner can create, disable, and re-enable regular accounts from User management.
 
 ## Features and known limits
 

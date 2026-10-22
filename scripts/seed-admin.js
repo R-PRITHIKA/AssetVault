@@ -1,4 +1,19 @@
 require('dotenv').config();
-const readline=require('readline');const bcrypt=require('bcryptjs');const crypto=require('crypto');const db=require('../src/db');
-const rl=readline.createInterface({input:process.stdin,output:process.stdout});const ask=q=>new Promise(r=>rl.question(q,r));
-(async()=>{try{await db.connect();const name=(await ask('Workspace Owner name: ')).trim();const email=(await ask('Workspace Owner email: ')).trim().toLowerCase();const password=await ask('Password (minimum 12 characters): ');if(name.length<2||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||password.length<12)throw Error('Name/email invalid or password shorter than 12 characters.');await db.collection('users').insertOne({_id:crypto.randomUUID(),name,email,password_hash:await bcrypt.hash(password,12),role:'Administrator',active:true,created_at:new Date()});console.log('Workspace Owner account created.');}catch(e){console.error('Could not create Workspace Owner:',e.code===11000?'That email is already registered.':e.message);process.exitCode=1;}finally{rl.close();await db.close();}})();
+const bcrypt=require('bcryptjs');
+const crypto=require('crypto');
+const db=require('../src/db');
+
+(async()=>{
+  try{
+    await db.connect();
+    const email='owner@assetvault.local';
+    await db.collection('users').updateMany({role:'Administrator',email:{$ne:email}},{$set:{role:'Editor'}});
+    await db.collection('users').updateOne({email},{$set:{name:'Workspace Owner',email,password_hash:await bcrypt.hash('Owner@asset123',12),role:'Administrator',active:true},$setOnInsert:{_id:crypto.randomUUID(),created_at:new Date()}},{upsert:true});
+    console.log('Default Workspace Owner account is ready.');
+  }catch(e){
+    console.error('Could not provision Workspace Owner:',e.message);
+    process.exitCode=1;
+  }finally{
+    await db.close();
+  }
+})();

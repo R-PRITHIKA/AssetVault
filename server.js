@@ -7,6 +7,8 @@ const fs=require('fs');
 const db=require('./src/db');
 const MongoSessionStore=require('./src/session-store');
 const api=require('./src/routes');
+const bcrypt=require('bcryptjs');
+const crypto=require('crypto');
 const app=express();
 app.set('trust proxy', 1);
 const port=Number(process.env.PORT||3000);
@@ -21,5 +23,5 @@ app.use('/api',api);
 app.use(express.static(path.join(__dirname,'public')));
 app.get('*',(_req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
 app.use((err,_req,res,_next)=>{console.error(err);const badUpload=err.code==='LIMIT_FILE_SIZE'||err.code==='LIMIT_UNEXPECTED_FILE';const dbUnavailable=['ECONNREFUSED','ENOTFOUND','MongoServerSelectionError','MongoNetworkError'].includes(err.code)||err.name==='MongoServerSelectionError';const status=err.status||(badUpload?400:dbUnavailable?503:500);const message=dbUnavailable?'MongoDB is unavailable. Start MongoDB or configure MONGODB_URI, then restart AssetVault.':status<500?(badUpload?'File is too large or the upload field is invalid.':err.message):'An unexpected server error occurred.';res.status(status).json({error:message});});
-async function start(){await db.connect();app.listen(port,()=>console.log(`AssetVault running at http://localhost:${port} (MongoDB)`));}
+async function start(){await db.connect();const ownerEmail='owner@assetvault.local',ownerPassword='Owner@asset123',users=db.collection('users');await users.updateMany({role:'Administrator',email:{$ne:ownerEmail}},{$set:{role:'Editor'}});await users.updateOne({email:ownerEmail},{$set:{name:'Workspace Owner',email:ownerEmail,password_hash:await bcrypt.hash(ownerPassword,12),role:'Administrator',active:true},$setOnInsert:{_id:crypto.randomUUID(),created_at:new Date()}},{upsert:true});app.listen(port,()=>console.log(`AssetVault running at http://localhost:${port} (MongoDB)`));}
 start().catch(err=>{console.error('MongoDB connection failed:',err.message);process.exit(1);});
