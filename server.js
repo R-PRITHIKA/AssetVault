@@ -8,6 +8,7 @@ const db=require('./src/db');
 const MongoSessionStore=require('./src/session-store');
 const api=require('./src/routes');
 const app=express();
+app.set('trust proxy', 1);
 const port=Number(process.env.PORT||3000);
 const uploadDir=path.resolve(process.env.UPLOAD_DIR||'./storage');
 fs.mkdirSync(uploadDir,{recursive:true});
