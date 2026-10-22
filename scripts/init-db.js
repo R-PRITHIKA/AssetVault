@@ -1,0 +1,1 @@
+require('dotenv').config();const db=require('../src/db');(async()=>{await db.connect();console.log('MongoDB collections and indexes are ready.');await db.close();})().catch(e=>{console.error('MongoDB initialization failed:',e.message);process.exit(1);});

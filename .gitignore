@@ -1,0 +1,10 @@
+node_modules/
+.env
+.DS_Store
+server-error.log
+server-output.log
+runtime/mysql-data/
+runtime/mysql-error.log
+runtime/mysql.log
+storage/*
+!storage/.gitkeep
